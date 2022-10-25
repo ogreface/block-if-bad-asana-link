@@ -1,11 +1,15 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'ogreface'
+description: 'Validates a sentinel value is not found, and that the asana link found is valid'
+author: 'ogreface'
 inputs:
-  milliseconds: # change this
+  sentinel:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'The sentinel value to ensure does not exist'
+    default: 'fixme'
+  regex:
+    required: true
+    description: "The regex to validate exists"
+    default: "https://test"
 runs:
   using: 'node16'
   main: 'dist/index.js'

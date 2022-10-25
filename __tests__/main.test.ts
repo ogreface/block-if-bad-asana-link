@@ -1,29 +1,79 @@
+import {log} from "util";
+import {containsRegexValue, containsSentinelValue} from "../src/main";
 import {wait} from '../src/wait'
 import * as process from 'process'
 import * as cp from 'child_process'
 import * as path from 'path'
-import {expect, test} from '@jest/globals'
+import {expect, test, afterEach, beforeAll, jest} from '@jest/globals'
+import * as core from '@actions/core'
+import * as github from '@actions/github'
 
-test('throws invalid number', async () => {
-  const input = parseInt('foo', 10)
-  await expect(wait(input)).rejects.toThrow('milliseconds not a number')
+// Shallow clone original @actions/github context
+let originalContext = { ...github.context }
+let inputs = {
+  sentinel: "findme.fake.com",
+  regex: 'https:\\/\\/app\\.fake\\.com/\\d/\\d+/\\d+/.'
+} as any
+
+beforeAll(() => {
+// Mock getInput
+  jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
+    return inputs[name]
+  })
 })
 
-test('wait 500 ms', async () => {
-  const start = new Date()
-  await wait(500)
-  const end = new Date()
-  var delta = Math.abs(end.getTime() - start.getTime())
-  expect(delta).toBeGreaterThan(450)
+afterEach(() => {
+  // Restore original @actions/github context
+  Object.defineProperty(github, 'context', {
+    value: originalContext,
+  });
 })
 
-// shows how the runner will run a javascript action with env / stdout protocol
-test('test runs', () => {
-  process.env['INPUT_MILLISECONDS'] = '500'
-  const np = process.execPath
-  const ip = path.join(__dirname, '..', 'lib', 'main.js')
-  const options: cp.ExecFileSyncOptions = {
-    env: process.env
-  }
-  console.log(cp.execFileSync(np, [ip], options).toString())
+function buildPullRequest(bodyText:string) {
+  // Mock the @actions/github context.
+  Object.defineProperty(github, 'context', {
+    value: {
+      payload: {
+        pull_request: {
+         body: bodyText,
+        },
+      },
+    },
+  });
+}
+
+test('sentinel does not exist', async() => {
+  buildPullRequest("This is a test body without the sentinel")
+  // @ts-ignore
+  let {body: prText} = github.context.payload.pull_request
+  let sentinel = core.getInput('sentinel')
+  const result = await containsSentinelValue(prText, sentinel)
+  expect(result).toBeFalsy()
+})
+
+test('sentinel does exist', async() => {
+  buildPullRequest("This is a test body with the sentinel.\n We may have a link like https://findme.fake.com")
+  // @ts-ignore
+  let {body: prText} = github.context.payload.pull_request
+  let sentinel = core.getInput('sentinel')
+  const result = await containsSentinelValue(prText, sentinel)
+  expect(result).toBeTruthy()
+})
+
+test('regex to match does exist', async() => {
+  buildPullRequest("This is a test body with the sentinel.\n We may have a link like https://app.fake.com/0/120320926/120320926/f")
+  // @ts-ignore
+  let {body: prText} = github.context.payload.pull_request
+  let regex = core.getInput('regex')
+  const result = await containsRegexValue(prText, regex)
+  expect(result).toBeTruthy()
+})
+
+test('regex to match does not exist', async() => {
+  buildPullRequest("This is a test body with the sentinel.\n We may have a link like https://app.fake.com/FAIL/0/120320926/120320926/f")
+  // @ts-ignore
+  let {body: prText} = github.context.payload.pull_request
+  let regex = core.getInput('regex')
+  const result = await containsRegexValue(prText, regex)
+  expect(result).toBeFalsy()
 })
