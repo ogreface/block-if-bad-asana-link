@@ -12,9 +12,6 @@ jobs:
     environment: base
     steps:
       - uses: actions/checkout@v2
-        with:
-          sentinel: "should be not found"
-          regex: ''
       - run: |
           npm install
       - run: |
