@@ -57,12 +57,12 @@ function run() {
         try {
             const sentinel = core.getInput('sentinel');
             core.debug(`Looking for ${sentinel}, will fail if found`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-            const prText = ((_c = (_b = (_a = github === null || github === void 0 ? void 0 : github.context) === null || _a === void 0 ? void 0 : _a.payload) === null || _b === void 0 ? void 0 : _b.pull_request) === null || _c === void 0 ? void 0 : _c.body) || 'fail';
+            const prText = ((_c = (_b = (_a = github === null || github === void 0 ? void 0 : github.context) === null || _a === void 0 ? void 0 : _a.payload) === null || _b === void 0 ? void 0 : _b.pull_request) === null || _c === void 0 ? void 0 : _c.body) || '';
             core.debug(`PR text is ${prText}`);
             const sentinelFound = yield containsSentinelValue(prText, sentinel);
             core.debug(`Sentinel status is ${sentinelFound}`);
             if (sentinelFound) {
-                core.setFailed(`$sentinel is present`);
+                core.setFailed(`${sentinel} is present`);
             }
             else {
                 const regex = core.getInput('regex');
