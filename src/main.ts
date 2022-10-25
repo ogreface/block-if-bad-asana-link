@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {wait} from './wait'
 
 export async function containsSentinelValue(
   prText: string,
@@ -21,8 +20,8 @@ async function run(): Promise<void> {
   try {
     const sentinel: string = core.getInput('sentinel')
     core.debug(`Looking for ${sentinel}, will fail if found`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-    // @ts-ignore
-    const prText: string = github.context.payload.pull_request.body
+    const prText: string =
+      github?.context?.payload?.pull_request?.body || 'fail'
     core.debug(`PR text is ${prText}`)
     const sentinelFound = await containsSentinelValue(prText, sentinel)
     core.debug(`Sentinel status is ${sentinelFound}`)
