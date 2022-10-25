@@ -20,14 +20,13 @@ async function run(): Promise<void> {
   try {
     const sentinel: string = core.getInput('sentinel')
     core.debug(`Looking for ${sentinel}, will fail if found`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-    const prText: string =
-      github?.context?.payload?.pull_request?.body || 'fail'
+    const prText: string = github?.context?.payload?.pull_request?.body || ''
     core.debug(`PR text is ${prText}`)
     const sentinelFound = await containsSentinelValue(prText, sentinel)
     core.debug(`Sentinel status is ${sentinelFound}`)
 
     if (sentinelFound) {
-      core.setFailed(`$sentinel is present`)
+      core.setFailed(`${sentinel} is present`)
     } else {
       const regex: string = core.getInput('regex')
       core.debug(`Looking for ${regex}, will succeed if found`)

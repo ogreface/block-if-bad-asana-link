@@ -44,7 +44,7 @@ function buildPullRequest(bodyText:string) {
 
 test('sentinel does not exist', async() => {
   buildPullRequest("This is a test body without the sentinel")
-  const prText = github?.context?.payload?.pull_request?.body || "fail"
+  const prText = github?.context?.payload?.pull_request?.body || ""
   let sentinel = core.getInput('sentinel')
   const result = await containsSentinelValue(prText, sentinel)
   expect(result).toBeFalsy()
