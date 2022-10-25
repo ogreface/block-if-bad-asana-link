@@ -9,8 +9,12 @@ on: # rebuild any PRs and main branch changes
 jobs:
   build: # make sure build/ci work properly
     runs-on: ubuntu-latest
+    environment: base
     steps:
       - uses: actions/checkout@v2
+        with:
+          sentinel: "should be not found"
+          regex: ''
       - run: |
           npm install
       - run: |
